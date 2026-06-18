@@ -1,5 +1,7 @@
 # Latency And FPS Test
 
+Record these numbers from the Jetson device that runs the camera. PC-side edits should update tables and notes only after the hardware run is complete.
+
 Measure raw camera FPS:
 
 ```bash

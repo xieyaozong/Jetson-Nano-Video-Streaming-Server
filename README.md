@@ -6,6 +6,10 @@ This project is built around the practical edge pipeline: get frames from a USB 
 
 ![Jetson stream with AI inference](docs/assets/ai-stream-preview.jpg)
 
+## Maintenance Scope
+
+Most hardware behavior must be verified on a Jetson device. Edits made from a non-Jetson PC should stay limited to documentation, notes, screenshots, diagrams, and repository presentation. FPS, camera backend behavior, YOLO/TensorRT performance, CUDA availability, and systemd startup notes should be recorded only after running on the target device.
+
 ## What It Does
 
 - Serves live camera video to any browser over MJPEG

@@ -1,5 +1,7 @@
 # Future AI Inference Integration
 
+This file is for design notes until the Jetson-side test environment is available. Treat YOLO, TensorRT, CUDA, and FPS claims as pending unless they are measured on the target device.
+
 The streaming server includes `server/processing/inference_hook.py`.
 
 Current behavior:
