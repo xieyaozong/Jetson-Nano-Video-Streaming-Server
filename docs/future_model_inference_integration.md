@@ -1,4 +1,4 @@
-# Future AI Inference Integration
+# Future Model Inference Integration
 
 This file is for design notes until the Jetson-side test environment is available. Treat YOLO, TensorRT, CUDA, and FPS claims as pending unless they are measured on the target device.
 

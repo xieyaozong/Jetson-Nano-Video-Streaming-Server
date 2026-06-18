@@ -1,10 +1,16 @@
-# Jetson Nano Video Streaming Server
+﻿# Jetson-Nano-Video-Streaming-Server
 
-Real-time video streaming for Jetson Nano and other Jetson edge devices, with an optional AI inference hook for YOLO/TensorRT-style processing.
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white&style=flat-square)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8?logo=opencv&logoColor=white&style=flat-square)
+![Jetson](https://img.shields.io/badge/Jetson-Nano-76B900?logo=nvidia&logoColor=white&style=flat-square)
+![MJPEG](https://img.shields.io/badge/Streaming-MJPEG-0f766e?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)
 
-This project is built around the practical edge pipeline: get frames from a USB camera, RTSP stream, or video file; keep the stream responsive; expose a browser-friendly MJPEG feed; and leave a clean place to attach AI inference without rewriting the streaming stack.
+Real-time video streaming for Jetson Nano and other Jetson edge devices, with an optional model inference hook for YOLO/TensorRT-style processing.
 
-![Jetson stream with AI inference](docs/assets/ai-stream-preview.jpg)
+This project is built around the practical edge pipeline: get frames from a USB camera, RTSP stream, or video file; keep the stream responsive; expose a browser-friendly MJPEG feed; and leave a clean place to attach model inference without rewriting the streaming stack.
+
+![Jetson stream preview](docs/assets/stream-preview.jpg)
 
 ## Maintenance Scope
 
@@ -16,7 +22,7 @@ Most hardware behavior must be verified on a Jetson device. Edits made from a no
 - Supports USB camera, RTSP stream, and video file input
 - Shows live FPS, stream FPS, inference state, and detection count overlays
 - Exposes `/video.mjpg`, `/snapshot.jpg`, and `/status.json`
-- Includes an optional YOLO inference hook
+- Includes an optional YOLO model hook
 - Keeps the inference path modular for future TensorRT integration
 - Includes Docker, systemd, camera check, and FPS benchmark helpers
 
@@ -32,7 +38,7 @@ Jetson Nano / Edge Device
 Frame Capture
         |
         v
-Optional Processing / AI Inference Hook
+Optional Processing / Model Inference Hook
         |
         v
 MJPEG Streaming Server
@@ -71,7 +77,7 @@ docs/
   docker_on_jetson.md
   latency_test.md
   troubleshooting.md
-  future_ai_inference_integration.md
+  future_model_inference_integration.md
 ```
 
 ## Quick Start
@@ -150,7 +156,7 @@ Video file:
 python -m server.main --source-type file --source sample_data/sample.mp4
 ```
 
-## AI Inference Hook
+## Model Inference Hook
 
 Inference is disabled by default so the base server stays lightweight.
 
