@@ -1,16 +1,7 @@
-# Reference package set for this Jetson venv.
-#
-# Prefer ./install_jetson.sh for installation. A normal
-# `pip install -r requirements.txt` lets pip replace JetPack's OpenCV and may
-# choose non-Jetson PyTorch wheels.
+# Jetson note:
+# Prefer JetPack's system OpenCV build. The install script creates a venv with
+# system site packages enabled so `import cv2` can use NVIDIA's OpenCV package.
 numpy==1.26.4
-cffi>=2.0.0
-pycparser>=3.0
 psutil>=5.8.0
-polars==1.41.2
-polars-runtime-32==1.41.2
-onnx>=1.16.1,<2.0.0
-onnxruntime>=1.23.0
-onnxslim>=0.1.82
-ultralytics-thop>=2.0.18
 ultralytics>=8.3,<9
+

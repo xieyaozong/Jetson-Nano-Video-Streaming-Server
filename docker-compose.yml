@@ -1,0 +1,14 @@
+services:
+  jetson-stream:
+    build: .
+    network_mode: host
+    privileged: true
+    env_file:
+      - .env
+    devices:
+      - /dev/video0:/dev/video0
+    command:
+      - python
+      - -m
+      - server.main
+

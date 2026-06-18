@@ -12,10 +12,13 @@ sed -i 's/include-system-site-packages = false/include-system-site-packages = tr
 source .venv/bin/activate
 
 python -m pip install --upgrade pip setuptools wheel
+
+# Optional inference hook support. The streaming server itself can run without
+# YOLO, but installing the Jetson PyTorch wheel keeps --enable-inference ready.
 python -m pip install torch==2.8.0 torchvision==0.23.0 --index-url=https://pypi.jetson-ai-lab.io/jp6/cu126
-python -m pip install numpy==1.26.4 cffi pycparser psutil 'polars==1.41.2' 'polars-runtime-32==1.41.2' 'ultralytics-thop>=2.0.18' --no-deps
-python -m pip install 'onnx>=1.16.1,<2.0.0' 'onnxslim>=0.1.82' onnxruntime
+python -m pip install numpy==1.26.4 psutil 'ultralytics-thop>=2.0.18' --no-deps
 python -m pip install 'ultralytics>=8.3,<9' --no-deps
+python -m pip install -e .
 
 python - <<'PY'
 import cv2
@@ -28,4 +31,5 @@ print(f"cuda_available={torch.cuda.is_available()}")
 if torch.cuda.is_available():
     print(f"cuda_device={torch.cuda.get_device_name(0)}")
 print("ultralytics=ok")
+print("server=ok")
 PY

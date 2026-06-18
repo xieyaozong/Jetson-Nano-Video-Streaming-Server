@@ -3,28 +3,21 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jetson-object-stream"
+name = "jetson-nano-video-streaming-server"
 version = "0.1.0"
-description = "YOLO object detection and MJPEG livestream tooling for NVIDIA Jetson devices."
+description = "Real-time video streaming server for Jetson Nano with an optional future AI inference hook."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "numpy==1.26.4",
-    "onnx>=1.16.1,<2.0.0",
-    "onnxruntime>=1.23.0",
-    "onnxslim>=0.1.82",
+    "psutil>=5.8.0",
     "ultralytics>=8.3,<9",
 ]
 
 [project.scripts]
-object-live-view = "object_stream.live_view:main"
-object-web-stream = "object_stream.web_server:main"
-object-model-variants = "object_stream.model_variants:main"
-object-benchmark-models = "tools.benchmark_models:main"
-object-benchmark-camera-matrix = "tools.benchmark_camera_matrix:main"
-object-build-engine = "tools.build_tensorrt_engine:main"
-object-probe-camera = "tools.probe_camera:main"
-object-capture-image = "tools.capture_public_image:main"
+jetson-stream-server = "server.main:main"
+jetson-stream-viewer = "client.viewer:main"
 
 [tool.setuptools.packages.find]
-include = ["object_stream*", "tools*"]
+include = ["server*", "client*"]
+

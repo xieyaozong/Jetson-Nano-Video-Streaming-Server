@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 
 # Local environments
+.env
 .venv/
 venv/
 env/
@@ -17,11 +18,17 @@ captures/
 reports/*
 reports/
 benchmarks/*
-company_private/
+private*/
+sample_data/*
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.mjpg
 
 # Keep directory placeholders
-!logs/.gitkeep
-!benchmarks/.gitkeep
+!sample_data/.gitkeep
+!sample_data/README.md
 
 # Model artifacts and calibration files
 *.engine
@@ -29,7 +36,6 @@ company_private/
 *.pt
 *.calib
 models/*
-!models/.gitkeep
 
 # OS/editor files
 .DS_Store

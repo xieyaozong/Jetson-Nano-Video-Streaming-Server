@@ -1,0 +1,16 @@
+[Unit]
+Description=Jetson Nano Video Streaming Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/jetson-nano-video-streaming-server
+EnvironmentFile=-/opt/jetson-nano-video-streaming-server/.env
+ExecStart=/usr/bin/python3 -m server.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,225 +1,229 @@
-# Jetson Object Stream
+# Jetson Nano Video Streaming Server
 
-Real-time object detection for NVIDIA Jetson devices using Ultralytics YOLO, OpenCV, TensorRT model variants, and an optional browser MJPEG stream.
+Real-time video streaming server for Jetson Nano and other Jetson edge devices. The project focuses on a reliable camera-to-browser pipeline first, with a clean optional hook for future AI inference such as YOLO or TensorRT.
 
-The repository is organized as source code first. Model engines, private camera captures, logs, and benchmark outputs are generated locally and ignored by Git so the project can be uploaded to a personal GitHub repository without bundling private machine artifacts.
+![Streaming pipeline](diagrams/streaming_pipeline.png)
+
+## Pipeline
+
+```text
+USB Camera / RTSP / Video File
+        |
+        v
+Jetson Nano
+        |
+        v
+Frame Capture
+        |
+        v
+Optional Processing / Inference Hook
+        |
+        v
+Streaming Server
+        |
+        v
+Browser / Client Viewer
+```
+
+## Features
+
+- USB camera, RTSP stream, or video file input
+- OpenCV capture path with V4L2/GStreamer backend selection
+- MJPEG browser streaming
+- `/status.json` endpoint with FPS and client count
+- `/snapshot.jpg` endpoint for the latest frame
+- FPS overlay and optional inference overlay
+- Docker and Docker Compose setup for Jetson-style deployment
+- Optional systemd service template
+- Future AI hook for YOLO/TensorRT integration
 
 ## Project Layout
 
 ```text
-object_stream/
-  live_view.py          # OpenCV live view with object detection
-  web_server.py         # MJPEG browser stream
-  model_variants.py    # ONNX/TensorRT export and model benchmark helpers
-
-tools/
-  benchmark_models.py
-  benchmark_camera_matrix.py
-  build_tensorrt_engine.py
-  capture_public_image.py
-  probe_camera.py
-
-docs/assets/           # public-safe images used by README/GitHub pages
-models/                # local model outputs, ignored by Git
-captures/              # private/local camera images, ignored by Git
-logs/                  # runtime CSV/JSON logs, ignored by Git
-reports/               # private/local reports, ignored by Git
-benchmarks/            # generated benchmark outputs, ignored by Git
+jetson-nano-video-streaming-server/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── .env.example
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+├── server/
+│   ├── main.py
+│   ├── config.py
+│   ├── camera/
+│   │   ├── camera_source.py
+│   │   ├── usb_camera.py
+│   │   ├── rtsp_source.py
+│   │   └── video_file_source.py
+│   ├── streaming/
+│   │   ├── frame_buffer.py
+│   │   ├── mjpeg_streamer.py
+│   │   ├── rtsp_streamer.py
+│   │   └── websocket_streamer.py
+│   ├── processing/
+│   │   ├── frame_preprocessor.py
+│   │   ├── overlay.py
+│   │   └── inference_hook.py
+│   └── utils/
+│       ├── fps_counter.py
+│       ├── device_monitor.py
+│       └── logger.py
+├── client/
+│   ├── simple_viewer.html
+│   ├── viewer.py
+│   └── README.md
+├── scripts/
+│   ├── run_local.sh
+│   ├── run_docker.sh
+│   ├── check_camera.py
+│   ├── benchmark_fps.py
+│   └── install_systemd_service.sh
+├── systemd/
+│   └── jetson-streaming-server.service
+├── docs/
+│   ├── architecture.md
+│   ├── jetson_setup.md
+│   ├── docker_on_jetson.md
+│   ├── latency_test.md
+│   ├── troubleshooting.md
+│   └── future_ai_inference_integration.md
+├── sample_data/
+│   ├── README.md
+│   └── .gitkeep
+└── diagrams/
+    └── streaming_pipeline.png
 ```
 
-## Setup
+## Quick Start
 
-On Jetson, use the install script. It creates a virtual environment with access to JetPack's system OpenCV and installs the Jetson PyTorch wheels.
+Create the environment:
 
 ```bash
-./install_jetson.sh
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Check CUDA from the same environment:
+Check the camera:
 
 ```bash
-python - <<'PY'
-import torch
-
-print(torch.__version__)
-print(torch.cuda.is_available())
-PY
+python scripts/check_camera.py --source 0 --backend v4l2 --width 1280 --height 720 --fourcc auto
 ```
 
-## Live View
-
-Run a local OpenCV window:
+Start the server:
 
 ```bash
-python -m object_stream.live_view \
+python -m server.main \
+  --source-type usb \
   --source 0 \
   --backend v4l2 \
-  --model models/yolo11n-320-trt-fp16.engine \
-  --imgsz 320 \
-  --width 640 \
-  --height 480 \
-  --fps 30 \
-  --fourcc YUYV \
-  --auto-exposure 1 \
-  --exposure 300 \
-  --conf 0.25
-```
-
-Use async display when the camera should keep drawing frames while inference runs in the background:
-
-```bash
-python -m object_stream.live_view \
-  --source 0 \
-  --backend v4l2 \
-  --model models/yolo11n-320-trt-fp16.engine \
-  --imgsz 320 \
   --width 1280 \
   --height 720 \
   --fps 30 \
-  --fourcc auto \
-  --auto-exposure 1 \
-  --exposure 300 \
-  --conf 0.25 \
-  --async-display
+  --fourcc auto
 ```
 
-Press `q`, `Esc`, or `Ctrl+C` to stop.
-
-By default the app detects every class supported by the selected YOLO model. To limit detection to specific class IDs, pass `--classes`, for example `--classes 0 56 62`.
-
-## Browser Stream
-
-Serve the annotated stream over HTTP:
-
-```bash
-python -m object_stream.web_server \
-  --host 0.0.0.0 \
-  --port 8080 \
-  --source 0 \
-  --backend v4l2 \
-  --model models/yolo11n-320-trt-fp16.engine \
-  --imgsz 320 \
-  --width 1280 \
-  --height 720 \
-  --fps 30 \
-  --fourcc auto \
-  --auto-exposure 1 \
-  --exposure 300 \
-  --conf 0.25
-```
-
-Open the stream from another device on the same network:
+Open:
 
 ```text
 http://<jetson-ip>:8080/
 ```
 
-Status and snapshots are available at:
+Direct endpoints:
 
 ```text
-http://<jetson-ip>:8080/status.json
-http://<jetson-ip>:8080/snapshot.jpg
 http://<jetson-ip>:8080/video.mjpg
+http://<jetson-ip>:8080/snapshot.jpg
+http://<jetson-ip>:8080/status.json
 ```
 
-## Public Demo Image
+## Input Sources
 
-Private camera captures stay under `captures/` and are ignored by Git. For a clean image that is safe to show on GitHub, point the camera at a non-sensitive desk scene and save it under `docs/assets/`:
+USB camera:
 
 ```bash
-python -m tools.capture_public_image \
+python -m server.main --source-type usb --source 0 --backend v4l2
+```
+
+RTSP stream:
+
+```bash
+python -m server.main --source-type rtsp --source rtsp://user:pass@camera.local/stream1
+```
+
+Video file:
+
+```bash
+python -m server.main --source-type file --source sample_data/sample.mp4
+```
+
+## Optional AI Inference Hook
+
+Inference is disabled by default. Enable it when a model is available:
+
+```bash
+python -m server.main \
+  --source-type usb \
   --source 0 \
-  --backend v4l2 \
-  --width 1280 \
-  --height 720 \
-  --fourcc auto \
-  --output docs/assets/desk-detections.jpg
-```
-
-![Desk object detection sample](docs/assets/desk-detections.jpg)
-
-## Model Variants
-
-Export YOLO variants:
-
-```bash
-python -m object_stream.model_variants export \
+  --enable-inference \
   --model yolo11n.pt \
-  --variants onnx-fp32 trt-fp16 trt-int8 \
-  --imgsz 320 \
-  --output-dir models
+  --device auto \
+  --imgsz 640 \
+  --conf 0.25
 ```
 
-Benchmark variants against the same captured frame set:
+The hook is intentionally isolated in `server/processing/inference_hook.py` so it can later be replaced with TensorRT engine inference.
+
+## Docker
 
 ```bash
-python -m object_stream.model_variants benchmark \
-  yolo11n.pt models/yolo11n-320-trt-fp16.engine \
-  --source synthetic \
-  --imgsz 320 \
-  --output-csv benchmarks/benchmark_results.csv
+cp .env.example .env
+docker compose up --build
 ```
 
-Build a TensorRT engine directly from ONNX:
+The Compose setup uses host networking and maps `/dev/video0` for USB camera access.
+
+## FPS Benchmark
+
+Measure raw capture FPS:
 
 ```bash
-python -m tools.build_tensorrt_engine \
-  --onnx models/yolo11n-320-onnx-fp32.onnx \
-  --engine models/yolo11n-320-trt-fp16.engine \
-  --fp16
+python scripts/benchmark_fps.py --source 0 --backend v4l2 --width 1280 --height 720 --fourcc auto
 ```
 
-## Camera And Benchmark Tools
-
-Probe a USB camera and compare default models:
+Check live stream status:
 
 ```bash
-python -m tools.probe_camera --source 0 --width 640 --height 480 --fps 30
+curl http://127.0.0.1:8080/status.json
 ```
 
-Benchmark several model files on one camera capture:
+## Systemd
+
+Edit `systemd/jetson-streaming-server.service` for your install path, then:
 
 ```bash
-python -m tools.benchmark_models \
-  --source 0 \
-  --width 640 \
-  --height 480 \
-  --fps 30 \
-  --fourcc YUYV \
-  --models yolo11n.pt models/yolo11n-320-trt-fp16.engine
+sudo ./scripts/install_systemd_service.sh
+sudo systemctl start jetson-streaming-server
+sudo systemctl status jetson-streaming-server
 ```
 
-Benchmark camera size and model combinations:
+## GitHub Safety
+
+Private runtime files are ignored:
+
+- `captures/`
+- `reports/`
+- `logs/`
+- `models/`
+- `benchmarks/`
+- private local folders
+- large sample videos under `sample_data/`
+
+Before pushing, verify:
 
 ```bash
-python -m tools.benchmark_camera_matrix \
-  --source 0 \
-  --camera-sizes auto \
-  --fps 30 \
-  --fourcc YUYV
-```
-
-## GitHub Notes
-
-The `.gitignore` keeps local artifacts out of the public repository:
-
-- TensorRT/ONNX/PyTorch model files
-- calibration caches
-- camera captures
-- logs and generated summaries
-- benchmark output files
-- report images
-- company/private report tooling
-- private camera captures; only curated images in `docs/assets/` are meant for GitHub
-- local virtual environments and Python caches
-
-Before publishing, check what Git would include:
-
-```bash
-git init
-git status --short
-git add .
-git status --short
+git add --dry-run .
 ```
