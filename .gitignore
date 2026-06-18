@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments
+.venv/
+venv/
+env/
+
+# Runtime output
+logs/*
+captures/*
+captures/
+reports/*
+reports/
+benchmarks/*
+company_private/
+
+# Keep directory placeholders
+!logs/.gitkeep
+!benchmarks/.gitkeep
+
+# Model artifacts and calibration files
+*.engine
+*.onnx
+*.pt
+*.calib
+models/*
+!models/.gitkeep
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
